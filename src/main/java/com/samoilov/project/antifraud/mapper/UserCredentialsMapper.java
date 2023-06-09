@@ -18,6 +18,8 @@ public class UserCredentialsMapper {
                 .id(userEntity.getId())
                 .name(userEntity.getName())
                 .username(userEntity.getUsername())
+                .role(userEntity.getRole())
+                .lockState(userEntity.getLockState())
                 .build();
     }
 
@@ -27,6 +29,8 @@ public class UserCredentialsMapper {
                 .name(userDto.getName())
                 .username(userDto.getUsername())
                 .encodedPassword(passwordEncoder.encode(userDto.getPassword()))
+                .role(userDto.getRole())
+                .lockState(userDto.getLockState())
                 .build();
     }
 

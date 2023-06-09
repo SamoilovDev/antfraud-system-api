@@ -5,7 +5,6 @@ import com.samoilov.project.antifraud.dto.ResultDto;
 import com.samoilov.project.antifraud.service.TransactionService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +18,6 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping
-    @PreAuthorize(value = "authenticated()")
     public ResponseEntity<ResultDto> prepareTransaction(@RequestBody AmountDto amountDto) {
         return ResponseEntity.ok(transactionService.prepareTransaction(amountDto));
     }

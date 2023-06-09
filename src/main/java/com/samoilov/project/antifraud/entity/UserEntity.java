@@ -2,6 +2,8 @@ package com.samoilov.project.antifraud.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.samoilov.project.antifraud.enums.Authority;
+import com.samoilov.project.antifraud.enums.LockState;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +15,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.List;
 
 @Getter
 @Setter
@@ -29,7 +32,6 @@ public class UserEntity implements UserDetails {
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
     @Column(name = "name", nullable = false)
@@ -41,9 +43,17 @@ public class UserEntity implements UserDetails {
     @Column(name = "password", nullable = false)
     private String encodedPassword;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Authority role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "lock_state", nullable = false)
+    private LockState lockState;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return List.of(role);
     }
 
     @Override
@@ -63,7 +73,7 @@ public class UserEntity implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return this.lockState.equals(LockState.UNLOCK);
     }
 
     @Override
