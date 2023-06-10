@@ -1,7 +1,5 @@
 package com.samoilov.project.antifraud.entity;
 
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.samoilov.project.antifraud.enums.Authority;
 import com.samoilov.project.antifraud.enums.LockState;
 import jakarta.persistence.*;

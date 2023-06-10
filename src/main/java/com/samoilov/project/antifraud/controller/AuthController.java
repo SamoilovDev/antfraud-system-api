@@ -2,8 +2,6 @@ package com.samoilov.project.antifraud.controller;
 
 import com.samoilov.project.antifraud.dto.ChangeInfoDto;
 import com.samoilov.project.antifraud.dto.UserDto;
-import com.samoilov.project.antifraud.entity.UserEntity;
-import com.samoilov.project.antifraud.enums.LockState;
 import com.samoilov.project.antifraud.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
