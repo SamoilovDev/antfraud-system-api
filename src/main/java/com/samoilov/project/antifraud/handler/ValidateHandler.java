@@ -1,6 +1,7 @@
 package com.samoilov.project.antifraud.handler;
 
 import com.samoilov.project.antifraud.dto.ApiError;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -22,4 +23,18 @@ public class ValidateHandler {
                 );
     }
 
+    @ExceptionHandler({ConstraintViolationException.class, AssertionError.class})
+    public ResponseEntity<ApiError> handleAssertionError(ConstraintViolationException e) {
+        return ResponseEntity
+                .badRequest()
+                .body(
+                        ApiError.builder()
+                                .error("Validation error")
+                                .status(HttpStatus.BAD_REQUEST)
+                                .message(e.getMessage())
+                                .build()
+                );
+    }
+
 }
+

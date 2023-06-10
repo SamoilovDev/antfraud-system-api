@@ -42,6 +42,9 @@ public class SecurityConfiguration {
                     auth.requestMatchers(HttpMethod.PUT, "/api/auth/access").hasAuthority(Authority.ADMINISTRATOR.getAuthority());
                     auth.requestMatchers(HttpMethod.PUT, "/api/auth/role").hasAuthority(Authority.ADMINISTRATOR.getAuthority());
                     auth.requestMatchers(HttpMethod.DELETE, "/api/auth/user/{username}").hasAuthority(Authority.ADMINISTRATOR.getAuthority());
+                    auth.requestMatchers(HttpMethod.GET, "/api/antifraud/suspicious-ip","/api/antifraud/stolencard").hasAuthority(Authority.SUPPORT.getAuthority());
+                    auth.requestMatchers(HttpMethod.POST,"/api/antifraud/suspicious-ip", "/api/antifraud/stolencard").hasAuthority(Authority.SUPPORT.getAuthority());
+                    auth.requestMatchers(HttpMethod.DELETE, "/api/antifraud/suspicious-ip/{ip}", "/api/antifraud/stolencard/{cardNumber}").hasAuthority(Authority.SUPPORT.getAuthority());
                     auth.anyRequest().denyAll();
                 })
                 .sessionManagement(

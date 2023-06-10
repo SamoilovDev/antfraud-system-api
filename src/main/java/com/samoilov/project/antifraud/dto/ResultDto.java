@@ -17,4 +17,6 @@ public class ResultDto {
     @NotNull(message = "Result is required")
     private PaymentState result;
 
+    private String info;
+
 }
