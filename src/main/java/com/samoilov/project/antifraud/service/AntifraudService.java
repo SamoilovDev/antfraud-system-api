@@ -5,8 +5,8 @@ import com.samoilov.project.antifraud.dto.IpAddressDto;
 import com.samoilov.project.antifraud.entity.CardNumberEntity;
 import com.samoilov.project.antifraud.entity.IpAddressEntity;
 import com.samoilov.project.antifraud.mapper.AntifraudInfoMapper;
-import com.samoilov.project.antifraud.repository.CardNumberRepository;
-import com.samoilov.project.antifraud.repository.IpAddressRepository;
+import com.samoilov.project.antifraud.repository.BlockedCardNumberRepository;
+import com.samoilov.project.antifraud.repository.BlockedIpAddressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,21 +19,21 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AntifraudService {
 
-    private final CardNumberRepository cardNumberRepository;
+    private final BlockedCardNumberRepository blockedCardNumberRepository;
 
-    private final IpAddressRepository ipAddressRepository;
+    private final BlockedIpAddressRepository blockedIpAddressRepository;
 
     private final AntifraudInfoMapper antifraudInfoMapper;
 
     public IpAddressDto saveSuspiciousIp(IpAddressDto ipAddressDto) {
-        if (ipAddressRepository.findByIp(ipAddressDto.getIp()).isPresent()) {
+        if (blockedIpAddressRepository.findByIp(ipAddressDto.getIp()).isPresent()) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Ip address %s already exists".formatted(ipAddressDto.getIp())
             );
         }
 
-        IpAddressEntity ipAddressEntity = ipAddressRepository.save(
+        IpAddressEntity ipAddressEntity = blockedIpAddressRepository.save(
                 antifraudInfoMapper.mapIpDtoToEntity(ipAddressDto)
         );
 
@@ -41,35 +41,36 @@ public class AntifraudService {
     }
 
     public Map<String, String> deleteSuspiciousIp(String ip) {
-        IpAddressEntity ipAddressEntity = ipAddressRepository
+        IpAddressEntity ipAddressEntity = blockedIpAddressRepository
                 .findByIp(ip)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ip address %s not found".formatted(ip)));
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "Ip address %s not found".formatted(ip)
+                        )
+                );
 
-        ipAddressRepository.delete(ipAddressEntity);
+        blockedIpAddressRepository.delete(ipAddressEntity);
 
         return Map.of("status", "IP %s successfully removed!".formatted(ip));
     }
 
     public List<IpAddressDto> getAllSuspiciousIp() {
-        List<IpAddressEntity> ipAddressDtoList = ipAddressRepository.findAll();
-
-        return ipAddressDtoList.isEmpty()
-                ? List.of()
-                : ipAddressDtoList
+        return blockedIpAddressRepository
+                .findAll()
                 .stream()
                 .map(antifraudInfoMapper::mapIpEntityToDto)
                 .toList();
     }
 
     public CardNumberDto saveCardNumber(CardNumberDto cardNumberDto) {
-        if (cardNumberRepository.findByCardNumber(cardNumberDto.getCardNumber()).isPresent()) {
+        if (blockedCardNumberRepository.findByCardNumber(cardNumberDto.getCardNumber()).isPresent()) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Card number %s already exists".formatted(cardNumberDto.getCardNumber())
             );
         }
 
-        CardNumberEntity cardNumberEntity = cardNumberRepository.save(
+        CardNumberEntity cardNumberEntity = blockedCardNumberRepository.save(
                 antifraudInfoMapper.mapCardDtoToEntity(cardNumberDto)
         );
 
@@ -77,17 +78,21 @@ public class AntifraudService {
     }
 
     public Map<String, String> deleteCardNumber(String cardNumber) {
-        CardNumberEntity cardNumberEntity = cardNumberRepository
+        CardNumberEntity cardNumberEntity = blockedCardNumberRepository
                 .findByCardNumber(cardNumber)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Card with number %s not found".formatted(cardNumber)));
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "Card with number %s not found".formatted(cardNumber)
+                        )
+                );
 
-        cardNumberRepository.delete(cardNumberEntity);
+        blockedCardNumberRepository.delete(cardNumberEntity);
 
         return Map.of("status", "Card %s successfully removed!".formatted(cardNumber));
     }
 
     public List<CardNumberDto> getAllCardNumbers() {
-        return cardNumberRepository
+        return blockedCardNumberRepository
                 .findAll()
                 .stream()
                 .map(antifraudInfoMapper::mapCardEntityToDto)
@@ -95,4 +100,5 @@ public class AntifraudService {
     }
 
 }
+
 

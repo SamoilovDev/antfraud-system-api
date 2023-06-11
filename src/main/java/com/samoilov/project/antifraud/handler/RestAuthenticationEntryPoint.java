@@ -1,4 +1,4 @@
-package com.samoilov.project.antifraud.config;
+package com.samoilov.project.antifraud.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

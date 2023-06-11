@@ -1,18 +1,12 @@
 package com.samoilov.project.antifraud.controller;
 
 import com.samoilov.project.antifraud.components.AntifraudInfoChecker;
+import com.samoilov.project.antifraud.controller.interfaces.AntifraudApi;
 import com.samoilov.project.antifraud.dto.CardNumberDto;
 import com.samoilov.project.antifraud.dto.IpAddressDto;
 import com.samoilov.project.antifraud.service.AntifraudService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -20,44 +14,43 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/antifraud")
-public class AntifraudController {
+public class AntifraudController implements AntifraudApi {
 
     private final AntifraudService antifraudService;
 
     private final AntifraudInfoChecker antifraudInfoChecker;
 
-    @PostMapping("/suspicious-ip")
-    public ResponseEntity<IpAddressDto> saveSuspiciousIp(@RequestBody @Valid IpAddressDto ipAddressDto) {
+    @Override
+    public ResponseEntity<IpAddressDto> saveSuspiciousIp(IpAddressDto ipAddressDto) {
         antifraudInfoChecker.checkIpAddress(ipAddressDto.getIp());
         return ResponseEntity.ok(antifraudService.saveSuspiciousIp(ipAddressDto));
     }
 
-    @DeleteMapping("/suspicious-ip/{ip}")
-    public ResponseEntity<Map<String, String>> deleteSuspiciousIp(@PathVariable String ip) {
+    @Override
+    public ResponseEntity<Map<String, String>> deleteSuspiciousIp(String ip) {
         antifraudInfoChecker.checkIpAddress(ip);
         return ResponseEntity.ok(antifraudService.deleteSuspiciousIp(ip));
     }
 
-    @GetMapping("/suspicious-ip")
-    public ResponseEntity<List<IpAddressDto>> getSuspiciousIp() {
+    @Override
+    public ResponseEntity<List<IpAddressDto>> getAllSuspiciousIp() {
         return ResponseEntity.ok(antifraudService.getAllSuspiciousIp());
     }
 
-    @PostMapping("/stolencard")
-    public ResponseEntity<CardNumberDto> saveStolenCard(@RequestBody @Valid CardNumberDto cardNumberDto) {
+    @Override
+    public ResponseEntity<CardNumberDto> saveStolenCard(CardNumberDto cardNumberDto) {
         antifraudInfoChecker.checkCardNumber(cardNumberDto.getCardNumber());
         return ResponseEntity.ok(antifraudService.saveCardNumber(cardNumberDto));
     }
 
-    @DeleteMapping("/stolencard/{cardNumber}")
-    public ResponseEntity<Map<String, String>> deleteStolenCard(@PathVariable String cardNumber) {
+    @Override
+    public ResponseEntity<Map<String, String>> deleteStolenCard(String cardNumber) {
         antifraudInfoChecker.checkCardNumber(cardNumber);
         return ResponseEntity.ok(antifraudService.deleteCardNumber(cardNumber));
     }
 
-    @GetMapping("/stolencard")
-    public ResponseEntity<List<CardNumberDto>> getStolenCard() {
+    @Override
+    public ResponseEntity<List<CardNumberDto>> getAllStolenCards() {
         return ResponseEntity.ok(antifraudService.getAllCardNumbers());
     }
 

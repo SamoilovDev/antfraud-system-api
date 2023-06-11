@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Builder
 @AllArgsConstructor
-public class ApiError {
+public class ApiErrorDto {
 
     @Builder.Default
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")

@@ -31,7 +31,7 @@ public class AuthService implements UserDetailsService {
 
     public List<UserDto> getAllUsers() {
         return userRepository
-                .getAll()
+                .findAll()
                 .stream()
                 .map(userCredentialsMapper::mapToDto)
                 .toList();

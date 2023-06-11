@@ -8,6 +8,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.apache.logging.log4j.util.Strings.EMPTY;
 
 @Validated
 @Component
@@ -22,7 +25,9 @@ public class AntifraudInfoChecker {
                 .map(Integer::parseInt)
                 .forEach(octet -> {
                     if (octet < 0 || octet > 255) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ip address octets must be in range 0-255");
+                        throw new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST, "Ip address octets must be in range 0-255"
+                        );
                     }
                 });
     }
@@ -31,23 +36,22 @@ public class AntifraudInfoChecker {
             @NotNull(message = "Card number must not be null")
             @Pattern(regexp = "^\\d{16}$", message = "Card number must be 16 digits")
             String cardNumber) {
-        int sum = 0;
+        AtomicInteger sum = new AtomicInteger(0);
+        AtomicInteger index = new AtomicInteger(0);
 
-        for (int i = 0; i < cardNumber.length(); i++) {
-            int digit = Character.getNumericValue(cardNumber.charAt(i));
+        Arrays.stream(cardNumber.split(EMPTY))
+                .map(Integer::parseInt)
+                .forEach(num -> {
+                    if (index.getAndIncrement() % 2 == 0) {
+                        num *= 2;
+                        if (num > 9) {
+                            num -= 9;
+                        }
+                    }
+                    sum.addAndGet(num);
+                });
 
-            if (i % 2 == 0) {
-                digit *= 2;
-
-                if (digit > 9) {
-                    digit -= 9;
-                }
-            }
-
-            sum += digit;
-        }
-
-        if (sum % 10 != 0) {
+        if (sum.get() % 10 != 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Card number is invalid");
         }
     }
