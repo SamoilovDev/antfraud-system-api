@@ -22,20 +22,28 @@ public class SecurityConfig {
 
     private final AuthService userDetailsService;
 
+    private static final String[] SWAGGER_WHITELIST = {
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+    };
+
     @Bean
     public SecurityFilterChain configure(
             HttpSecurity http,
             DaoAuthenticationProvider daoAuthenticationProvider
     ) throws Exception {
-        return http.userDetailsService(userDetailsService)
+        return http
+                .userDetailsService(userDetailsService)
                 .authenticationProvider(daoAuthenticationProvider)
                 .httpBasic(
                         httpSecurityHttpBasicConfigurer -> httpSecurityHttpBasicConfigurer
                                 .authenticationEntryPoint(restAuthenticationEntryPoint)
                 )
                 .csrf(AbstractHttpConfigurer::disable) // disable CSRF to allow POST requests from Postman
+                .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/actuator/shutdown").permitAll(); // needs to run tests
+                    auth.requestMatchers(SWAGGER_WHITELIST).permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/auth/user").permitAll();
                     auth.requestMatchers("/swagger-resources/*", "*.html", "/api/v1/swagger.json", "/webjars/**", "/swagger-ui/**").permitAll();
                     auth.requestMatchers(HttpMethod.GET, "/api/auth/list").hasAnyAuthority(Authority.ADMINISTRATOR.getAuthority(), Authority.SUPPORT.getAuthority());
