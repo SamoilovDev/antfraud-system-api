@@ -24,6 +24,8 @@ public class AuthService implements UserDetailsService {
 
     private final UserCredentialsMapper userCredentialsMapper;
 
+    public static final String CHANGING_ADMIN_STATE_EXCEPTION_REASON = "Impossible to change administrator's lock state";
+
     public AuthService(UserRepository userRepository, UserCredentialsMapper userCredentialsMapper) {
         this.userRepository = userRepository;
         this.userCredentialsMapper = userCredentialsMapper;
@@ -51,9 +53,7 @@ public class AuthService implements UserDetailsService {
     }
 
     public UserDto changeRole(ChangeInfoDto changeInfoDto) {
-        UserEntity userEntity = userRepository
-                .findByUsername(changeInfoDto.getUsername())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        UserEntity userEntity = this.getUserEntityByUsername(changeInfoDto.getUsername());
         Authority newRole = Authority
                 .parse(changeInfoDto.getRole())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role"));
@@ -68,12 +68,10 @@ public class AuthService implements UserDetailsService {
     }
 
     public Map<String, String> changeAccess(ChangeInfoDto changeInfoDto) {
-        UserEntity userEntity = userRepository
-                .findByUsername(changeInfoDto.getUsername())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        UserEntity userEntity = this.getUserEntityByUsername(changeInfoDto.getUsername());
 
         if (userEntity.getRole().equals(Authority.ADMINISTRATOR)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Impossible to change administrator's lock state");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, CHANGING_ADMIN_STATE_EXCEPTION_REASON);
         }
 
         userEntity.setLockState(LockState.valueOf(changeInfoDto.getRole().trim().toUpperCase()));
@@ -86,18 +84,17 @@ public class AuthService implements UserDetailsService {
     }
 
     public Map<String, String> deleteUser(String username) {
-        userRepository.delete(
-                userRepository
-                        .findByUsername(username)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))
-        );
-
+        userRepository.delete(this.getUserEntityByUsername(username));
         return Map.of("username", username, "status", "Deleted successfully!");
     }
 
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return this.getUserEntityByUsername(username);
+    }
+
+    private UserEntity getUserEntityByUsername(String username) {
         return userRepository
                 .findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));

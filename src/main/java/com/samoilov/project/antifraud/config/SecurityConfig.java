@@ -22,10 +22,18 @@ public class SecurityConfig {
 
     private final AuthService userDetailsService;
 
-    private static final String[] SWAGGER_WHITELIST = {
+    private static final String[] PERMITTED_ALL_PATHS = new String[]{
+            "/api/v1/auth/**",
+            "/v2/api-docs",
+            "/v3/api-docs",
             "/v3/api-docs/**",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/configuration/ui",
+            "/configuration/security",
             "/swagger-ui/**",
-            "/swagger-ui.html",
+            "/webjars/**",
+            "/swagger-ui.html"
     };
 
     @Bean
@@ -43,9 +51,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // disable CSRF to allow POST requests from Postman
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers(SWAGGER_WHITELIST).permitAll();
+                    auth.requestMatchers(PERMITTED_ALL_PATHS).permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/auth/user").permitAll();
-                    auth.requestMatchers("/swagger-resources/*", "*.html", "/api/v1/swagger.json", "/webjars/**", "/swagger-ui/**").permitAll();
+
                     auth.requestMatchers(HttpMethod.GET, "/api/auth/list").hasAnyAuthority(Authority.ADMINISTRATOR.getAuthority(), Authority.SUPPORT.getAuthority());
                     auth.requestMatchers(HttpMethod.POST, "/api/antifraud/transaction").hasAuthority(Authority.MERCHANT.getAuthority());
                     auth.requestMatchers(HttpMethod.PUT, "/api/auth/access").hasAuthority(Authority.ADMINISTRATOR.getAuthority());
@@ -56,6 +64,7 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.DELETE, "/api/antifraud/suspicious-ip/{ip}", "/api/antifraud/stolencard/{cardNumber}").hasAuthority(Authority.SUPPORT.getAuthority());
                     auth.requestMatchers(HttpMethod.PUT, "/api/antifraud/transaction").hasAuthority(Authority.SUPPORT.getAuthority());
                     auth.requestMatchers(HttpMethod.GET, "/api/antifraud/history", "/api/antifraud/history/{number}").hasAuthority(Authority.SUPPORT.getAuthority());
+
                     auth.anyRequest().authenticated();
                 })
                 .sessionManagement(

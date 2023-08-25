@@ -51,7 +51,7 @@ public class AntifraudService {
 
         blockedIpAddressRepository.delete(ipAddressEntity);
 
-        return Map.of("status", "IP %s successfully removed!".formatted(ip));
+        return Map.of("status", "Ip %s successfully removed!".formatted(ip));
     }
 
     public List<IpAddressDto> getAllSuspiciousIp() {

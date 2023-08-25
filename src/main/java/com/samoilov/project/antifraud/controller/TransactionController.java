@@ -24,7 +24,6 @@ public class TransactionController implements TransactionApi {
     public ResponseEntity<ResultDto> prepareTransaction(TransactionDto transactionDto) {
         antifraudInfoChecker.checkIpAddress(transactionDto.getIp());
         antifraudInfoChecker.checkCardNumber(transactionDto.getNumber());
-
         return ResponseEntity.ok(transactionService.prepareTransaction(transactionDto));
     }
 

@@ -15,7 +15,8 @@ public class ValidateHandler {
         return ResponseEntity
                 .badRequest()
                 .body(
-                        ApiErrorDto.builder()
+                        ApiErrorDto
+                                .builder()
                                 .error("Validation error")
                                 .status(HttpStatus.BAD_REQUEST)
                                 .message(e.getMessage())
@@ -28,7 +29,8 @@ public class ValidateHandler {
         return ResponseEntity
                 .badRequest()
                 .body(
-                        ApiErrorDto.builder()
+                        ApiErrorDto
+                                .builder()
                                 .error("Validation error")
                                 .status(HttpStatus.BAD_REQUEST)
                                 .message(e.getMessage())

@@ -14,6 +14,7 @@ import com.samoilov.project.antifraud.repository.BlockedIpAddressRepository;
 import com.samoilov.project.antifraud.repository.MaxAmountsRepository;
 import com.samoilov.project.antifraud.repository.TransactionRepository;
 import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -61,6 +62,7 @@ public class TransactionService {
                 .toList();
     }
 
+    @Transactional
     public TransactionDto addFeedback(FeedbackDto feedbackDto) {
         TransactionEntity transactionEntity = transactionRepository
                 .findById(feedbackDto.getTransactionId())
@@ -121,7 +123,8 @@ public class TransactionService {
         Long amount = transactionDto.getAmount();
         List<String> reasons = new ArrayList<>();
         PaymentState paymentState = PaymentState.ALLOWED;
-        MaxAmountsEntity maxAmountsEntity = maxAmountsRepository.findById(1L)
+        MaxAmountsEntity maxAmountsEntity = maxAmountsRepository
+                .findById(1L)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Max amounts not found"));
 
         if (distinctIpInLastHour.size() >= 2) {
@@ -159,16 +162,18 @@ public class TransactionService {
         }
 
 
-        return CheckResponseDto.builder().reasons(reasons).paymentState(paymentState).build();
+        return CheckResponseDto
+                .builder()
+                .reasons(reasons)
+                .paymentState(paymentState)
+                .build();
     }
 
     private String joinReasons(List<String> reasons) {
         if (reasons.isEmpty()) {
             reasons.add("none");
         }
-
         reasons.sort(String::compareToIgnoreCase);
-
         return String.join(", ", reasons);
     }
 
