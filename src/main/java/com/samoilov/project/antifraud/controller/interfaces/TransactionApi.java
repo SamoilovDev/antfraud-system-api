@@ -30,7 +30,7 @@ public interface TransactionApi {
             @ApiResponse(code = 500, message = "Internal server error", response = String.class)
     })
     @PostMapping("/transaction")
-    ResponseEntity<ResultDto> prepareTransaction(@RequestBody @Valid TransactionDto transactionDto);
+    ResponseEntity<ResultDto> prepareTransaction(@Valid @RequestBody TransactionDto transactionDto);
 
     @ApiOperation(value = "Add feedback")
     @ApiResponses(value = {
@@ -42,7 +42,7 @@ public interface TransactionApi {
             @ApiResponse(code = 500, message = "Internal server error", response = String.class)
     })
     @PutMapping("/transaction")
-    ResponseEntity<TransactionDto> addFeedback(@RequestBody @Valid FeedbackDto feedbackDto);
+    ResponseEntity<TransactionDto> addFeedback(@Valid @RequestBody FeedbackDto feedbackDto);
 
     @ApiOperation(value = "Get full history")
     @ApiResponses(value = {

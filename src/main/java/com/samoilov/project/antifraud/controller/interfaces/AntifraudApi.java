@@ -30,7 +30,7 @@ public interface AntifraudApi {
             @ApiResponse(code = 500, message = "Internal server error", response = String.class)
     })
     @PostMapping("/suspicious-ip")
-    ResponseEntity<IpAddressDto> saveSuspiciousIp(@RequestBody @Valid IpAddressDto ipAddressDto);
+    ResponseEntity<IpAddressDto> saveSuspiciousIp(@Valid @RequestBody IpAddressDto ipAddressDto);
 
     @ApiOperation(value = "Delete suspicious ip address")
     @ApiResponses(value = {
@@ -58,7 +58,7 @@ public interface AntifraudApi {
             @ApiResponse(code = 500, message = "Internal server error", response = String.class)
     })
     @PostMapping("/stolencard")
-    ResponseEntity<CardNumberDto> saveStolenCard(@RequestBody @Valid CardNumberDto cardNumberDto);
+    ResponseEntity<CardNumberDto> saveStolenCard(@Valid @RequestBody CardNumberDto cardNumberDto);
 
     @ApiOperation(value = "Delete stolen card number")
     @ApiResponses(value = {

@@ -39,7 +39,7 @@ public interface AuthApi {
             @ApiResponse(code = 500, message = "Internal server error", response = String.class)
     })
     @PostMapping("/user")
-    ResponseEntity<UserDto> createUser(@RequestBody @Valid UserDto userDto);
+    ResponseEntity<UserDto> createUser(@Valid @RequestBody UserDto userDto);
 
     @ApiOperation(value = "Delete user")
     @ApiResponses(value = {
@@ -59,7 +59,7 @@ public interface AuthApi {
             @ApiResponse(code = 500, message = "Internal server error", response = String.class)
     })
     @PutMapping("/role")
-    ResponseEntity<UserDto> changeRole(@RequestBody @Valid ChangeInfoDto roleChangeInfoDto);
+    ResponseEntity<UserDto> changeRole(@Valid @RequestBody ChangeInfoDto roleChangeInfoDto);
 
     @ApiOperation(value = "Change user access")
     @ApiResponses(value = {
@@ -69,6 +69,6 @@ public interface AuthApi {
             @ApiResponse(code = 500, message = "Internal server error", response = String.class)
     })
     @PutMapping("/access")
-    ResponseEntity<Map<String, String>> changeAccess(@RequestBody @Valid ChangeInfoDto changeInfoDto);
+    ResponseEntity<Map<String, String>> changeAccess(@Valid @RequestBody ChangeInfoDto changeInfoDto);
 
 }
