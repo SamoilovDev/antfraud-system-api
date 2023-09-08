@@ -3,10 +3,12 @@ package com.samoilov.project.antifraud.controller.interfaces;
 import com.samoilov.project.antifraud.dto.FeedbackDto;
 import com.samoilov.project.antifraud.dto.ResultDto;
 import com.samoilov.project.antifraud.dto.TransactionDto;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,46 +20,66 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
-@Api(tags = "Transaction api")
+@Tag(name = "Transaction api")
 @RequestMapping("/api/antifraud")
 public interface TransactionApi {
 
-    @ApiOperation(value = "Prepare transaction")
+    @Operation(description = "Prepare transaction")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully prepared transaction", response = ResultDto.class),
-            @ApiResponse(code = 400, message = "Wrong transaction data", response = String.class),
-            @ApiResponse(code = 404, message = "Max amounts not found", response = String.class),
-            @ApiResponse(code = 500, message = "Internal server error", response = String.class)
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully prepared transaction",
+                    content = @Content(
+                            schema = @Schema(implementation = ResultDto.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Wrong transaction data"),
+            @ApiResponse(responseCode = "404", description = "Max amounts not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping("/transaction")
     ResponseEntity<ResultDto> prepareTransaction(@Valid @RequestBody TransactionDto transactionDto);
 
-    @ApiOperation(value = "Add feedback")
+    @Operation(description = "Add feedback")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully added feedback", response = TransactionDto.class),
-            @ApiResponse(code = 400, message = "Wrong feedback data", response = String.class),
-            @ApiResponse(code = 404, message = "Transaction not found", response = String.class),
-            @ApiResponse(code = 409, message = "Transaction already has feedback", response = String.class),
-            @ApiResponse(code = 422, message = "Validity and Feedback payment states can not be equal", response = String.class),
-            @ApiResponse(code = 500, message = "Internal server error", response = String.class)
+            @ApiResponse(responseCode = "200", description = "Successfully added feedback", content = @Content(
+                    schema = @Schema(implementation = TransactionDto.class)
+            )),
+            @ApiResponse(responseCode = "400", description = "Wrong feedback data"),
+            @ApiResponse(responseCode = "404", description = "Transaction not found"),
+            @ApiResponse(responseCode = "409", description = "Transaction already has feedback"),
+            @ApiResponse(responseCode = "422", description = "Validity and Feedback payment states can not be equal"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PutMapping("/transaction")
     ResponseEntity<TransactionDto> addFeedback(@Valid @RequestBody FeedbackDto feedbackDto);
 
-    @ApiOperation(value = "Get full history")
+    @Operation(description = "Get full history")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully got full history", response = TransactionDto.class),
-            @ApiResponse(code = 500, message = "Internal server error", response = String.class)
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully got full history",
+                    content = @Content(
+                            schema = @Schema(implementation = TransactionDto.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/history")
     ResponseEntity<List<TransactionDto>> getFullHistory();
 
-    @ApiOperation(value = "Get history by card number")
+    @Operation(description = "Get history by card number")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully got history by card number", response = TransactionDto.class),
-            @ApiResponse(code = 400, message = "Wrong card number", response = String.class),
-            @ApiResponse(code = 404, message = "Transactions not found", response = String.class),
-            @ApiResponse(code = 500, message = "Internal server error", response = String.class)
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully got history by card number",
+                    content = @Content(
+                            schema = @Schema(implementation = TransactionDto.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Wrong card number"),
+            @ApiResponse(responseCode = "404", description = "Transactions not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/history/{number}")
     ResponseEntity<List<TransactionDto>> getHistoryByCardNumber(@PathVariable String number);

@@ -2,10 +2,12 @@ package com.samoilov.project.antifraud.controller.interfaces;
 
 import com.samoilov.project.antifraud.dto.CardNumberDto;
 import com.samoilov.project.antifraud.dto.IpAddressDto;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,62 +20,84 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 import java.util.Map;
 
-@Api(tags = "Antifraud api")
+@Tag(name = "Antifraud api")
 @RequestMapping("/api/antifraud")
 public interface AntifraudApi {
 
-    @ApiOperation(value = "Save suspicious ip address")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully saved suspicious ip address", response = IpAddressDto.class),
-            @ApiResponse(code = 400, message = "Wrong ip address", response = String.class),
-            @ApiResponse(code = 409, message = "Ip address already exists", response = String.class),
-            @ApiResponse(code = 500, message = "Internal server error", response = String.class)
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully saved suspicious ip address",
+                    content = @Content(
+                            schema = @Schema(implementation = IpAddressDto.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Wrong ip address"),
+            @ApiResponse(responseCode = "409", description = "Ip address already exists"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping("/suspicious-ip")
     ResponseEntity<IpAddressDto> saveSuspiciousIp(@Valid @RequestBody IpAddressDto ipAddressDto);
 
-    @ApiOperation(value = "Delete suspicious ip address")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully deleted suspicious ip address", response = String.class, responseContainer = "Map"),
-            @ApiResponse(code = 400, message = "Wrong ip address", response = String.class),
-            @ApiResponse(code = 404, message = "Ip address not found", response = String.class),
-            @ApiResponse(code = 500, message = "Internal server error", response = String.class)
+            @ApiResponse(responseCode = "200", description = "Successfully deleted suspicious ip address"),
+            @ApiResponse(responseCode = "400", description = "Wrong ip address"),
+            @ApiResponse(responseCode = "404", description = "Ip address not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @DeleteMapping("/suspicious-ip/{ip}")
     ResponseEntity<Map<String, String>> deleteSuspiciousIp(@PathVariable String ip);
 
-    @ApiOperation(value = "Get all suspicious ip addresses")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully got all suspicious ip addresses", response = IpAddressDto.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error", response = String.class)
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully got all suspicious ip addresses",
+                    content = @Content(
+                            array = @ArraySchema(
+                                    schema = @Schema(implementation = IpAddressDto.class)
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/suspicious-ip")
     ResponseEntity<List<IpAddressDto>> getAllSuspiciousIp();
 
-    @ApiOperation(value = "Save stolen card number")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully saved stolen card number", response = CardNumberDto.class),
-            @ApiResponse(code = 400, message = "Wrong card number", response = String.class),
-            @ApiResponse(code = 409, message = "Card number already exists", response = String.class),
-            @ApiResponse(code = 500, message = "Internal server error", response = String.class)
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully saved stolen card number",
+                    content = @Content(
+                            schema = @Schema(implementation = CardNumberDto.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Wrong card number"),
+            @ApiResponse(responseCode = "409", description = "Card number already exists"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping("/stolencard")
     ResponseEntity<CardNumberDto> saveStolenCard(@Valid @RequestBody CardNumberDto cardNumberDto);
 
-    @ApiOperation(value = "Delete stolen card number")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully deleted stolen card number", response = String.class, responseContainer = "Map"),
-            @ApiResponse(code = 400, message = "Wrong card number", response = String.class),
-            @ApiResponse(code = 404, message = "Card number not found", response = String.class),
-            @ApiResponse(code = 500, message = "Internal server error", response = String.class)
+            @ApiResponse(responseCode = "200", description = "Successfully deleted stolen card number"),
+            @ApiResponse(responseCode = "400", description = "Wrong card number"),
+            @ApiResponse(responseCode = "404", description = "Card number not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @DeleteMapping("/stolencard/{cardNumber}")
     ResponseEntity<Map<String, String>> deleteStolenCard(@PathVariable String cardNumber);
 
-    @ApiOperation(value = "Get all stolen card numbers")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully got all stolen card numbers", response = CardNumberDto.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error", response = String.class)
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully got all stolen card numbers",
+                    content = @Content(
+                            array = @ArraySchema(
+                                    schema = @Schema(implementation = CardNumberDto.class)
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/stolencard")
     ResponseEntity<List<CardNumberDto>> getAllStolenCards();

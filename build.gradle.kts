@@ -34,9 +34,7 @@ dependencies {
     runtimeOnly("com.mysql:mysql-connector-j")
     implementation("org.hibernate",  "hibernate-validator", "6.1.0.Final")
 
-    implementation("io.springfox:springfox-swagger2:2.9.2")
-    implementation("io.springfox:springfox-swagger-ui:2.9.2")
-    implementation("io.springfox:springfox-boot-starter:3.0.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0")
 
     compileOnly("javax.servlet:javax.servlet-api:4.0.1")
 }

@@ -1,24 +1,24 @@
 package com.samoilov.project.antifraud.config;
 
 import com.samoilov.project.antifraud.enums.Authority;
-import com.samoilov.project.antifraud.handler.RestAuthenticationEntryPoint;
 import com.samoilov.project.antifraud.service.AuthService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-@AllArgsConstructor
+@EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
-
-    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
     private final AuthService userDetailsService;
 
@@ -39,17 +39,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain configure(
             HttpSecurity http,
-            DaoAuthenticationProvider daoAuthenticationProvider
+            AuthenticationProvider authenticationProvider
     ) throws Exception {
         return http
-                .userDetailsService(userDetailsService)
-                .authenticationProvider(daoAuthenticationProvider)
-                .httpBasic(
-                        httpSecurityHttpBasicConfigurer -> httpSecurityHttpBasicConfigurer
-                                .authenticationEntryPoint(restAuthenticationEntryPoint)
-                )
+                .authenticationProvider(authenticationProvider)
                 .csrf(AbstractHttpConfigurer::disable) // disable CSRF to allow POST requests from Postman
-                .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(PERMITTED_ALL_PATHS).permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/auth/user").permitAll();
@@ -59,8 +53,8 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.PUT, "/api/auth/access").hasAuthority(Authority.ADMINISTRATOR.getAuthority());
                     auth.requestMatchers(HttpMethod.PUT, "/api/auth/role").hasAuthority(Authority.ADMINISTRATOR.getAuthority());
                     auth.requestMatchers(HttpMethod.DELETE, "/api/auth/user/{username}").hasAuthority(Authority.ADMINISTRATOR.getAuthority());
-                    auth.requestMatchers(HttpMethod.GET, "/api/antifraud/suspicious-ip","/api/antifraud/stolencard").hasAuthority(Authority.SUPPORT.getAuthority());
-                    auth.requestMatchers(HttpMethod.POST,"/api/antifraud/suspicious-ip", "/api/antifraud/stolencard").hasAuthority(Authority.SUPPORT.getAuthority());
+                    auth.requestMatchers(HttpMethod.GET, "/api/antifraud/suspicious-ip", "/api/antifraud/stolencard").hasAuthority(Authority.SUPPORT.getAuthority());
+                    auth.requestMatchers(HttpMethod.POST, "/api/antifraud/suspicious-ip", "/api/antifraud/stolencard").hasAuthority(Authority.SUPPORT.getAuthority());
                     auth.requestMatchers(HttpMethod.DELETE, "/api/antifraud/suspicious-ip/{ip}", "/api/antifraud/stolencard/{cardNumber}").hasAuthority(Authority.SUPPORT.getAuthority());
                     auth.requestMatchers(HttpMethod.PUT, "/api/antifraud/transaction").hasAuthority(Authority.SUPPORT.getAuthority());
                     auth.requestMatchers(HttpMethod.GET, "/api/antifraud/history", "/api/antifraud/history/{number}").hasAuthority(Authority.SUPPORT.getAuthority());
@@ -74,13 +68,13 @@ public class SecurityConfig {
                 .build();
     }
 
-    @Bean
-    public DaoAuthenticationProvider daoAuthenticationProvider(PasswordEncoder encoder) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setPasswordEncoder(encoder);
-        provider.setUserDetailsService(userDetailsService);
-        return provider;
-    }
 
+    @Bean
+    public AuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setUserDetailsService(userDetailsService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder);
+        return authenticationProvider;
+    }
 
 }
