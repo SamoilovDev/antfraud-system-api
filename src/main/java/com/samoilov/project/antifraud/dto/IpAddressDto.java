@@ -2,6 +2,7 @@ package com.samoilov.project.antifraud.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.samoilov.project.antifraud.validation.annotation.ValidIpAddress;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +20,7 @@ public class IpAddressDto {
     @Min(value = 1, message = "Id must be greater than 0")
     private Long id;
 
+    @ValidIpAddress
     private String ip;
 
 }

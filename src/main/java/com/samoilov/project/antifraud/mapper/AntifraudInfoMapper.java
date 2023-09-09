@@ -52,8 +52,8 @@ public class AntifraudInfoMapper {
         return TransactionEntity
                 .builder()
                 .amount(transactionDto.getAmount())
-                .cardNumber(transactionDto.getNumber())
-                .ip(transactionDto.getIp())
+                .cardNumber(transactionDto.getCardNumber())
+                .ip(transactionDto.getIpAddress())
                 .stateCode(transactionDto.getRegion())
                 .feedback(PaymentState.fromString(transactionDto.getFeedback()))
                 .createdAt(LocalDateTime.parse(transactionDto.getDate()))
@@ -65,8 +65,8 @@ public class AntifraudInfoMapper {
                 .builder()
                 .transactionId(transactionEntity.getId())
                 .amount(transactionEntity.getAmount())
-                .number(transactionEntity.getCardNumber())
-                .ip(transactionEntity.getIp())
+                .cardNumber(transactionEntity.getCardNumber())
+                .ipAddress(transactionEntity.getIp())
                 .region(transactionEntity.getStateCode())
                 .result(transactionEntity.getPaymentState())
                 .feedback(

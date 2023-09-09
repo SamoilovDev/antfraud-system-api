@@ -23,8 +23,7 @@ import org.springframework.context.annotation.Configuration;
                 ),
                 contact = @Contact(
                         name = OpenApiConfig.CREATOR_NAME,
-                        email = OpenApiConfig.CONTACT_EMAIL,
-                        url = OpenApiConfig.CONTACT_URL
+                        email = OpenApiConfig.CONTACT_EMAIL
                 )
         ),
         servers = @Server(

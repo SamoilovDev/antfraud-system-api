@@ -10,10 +10,16 @@ import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<TransactionEntity, Long> {
 
-    @Query(value = "SELECT DISTINCT t.ip FROM TransactionEntity t WHERE t.cardNumber = :cardNumber AND t.createdAt >= :startOfPeriod AND t.createdAt <= :endOfPeriod")
+    @Query(value = "SELECT DISTINCT t.ip FROM TransactionEntity t " +
+            "WHERE t.cardNumber = :cardNumber " +
+            "AND t.createdAt >= :startOfPeriod " +
+            "AND t.createdAt <= :endOfPeriod")
     List<String> getAllDistinctIpDuringPeriod(String cardNumber, LocalDateTime startOfPeriod, LocalDateTime endOfPeriod);
 
-    @Query(value = "SELECT DISTINCT t.stateCode FROM TransactionEntity t WHERE t.cardNumber = :cardNumber AND t.createdAt >= :startOfPeriod AND t.createdAt <= :endOfPeriod")
+    @Query(value = "SELECT DISTINCT t.stateCode FROM TransactionEntity t " +
+            "WHERE t.cardNumber = :cardNumber " +
+            "AND t.createdAt >= :startOfPeriod " +
+            "AND t.createdAt <= :endOfPeriod")
     List<StateCode> getAllDistinctStateCodeDuringPeriod(String cardNumber, LocalDateTime startOfPeriod, LocalDateTime endOfPeriod);
 
     List<TransactionEntity> getAllByCardNumber(String cardNumber);

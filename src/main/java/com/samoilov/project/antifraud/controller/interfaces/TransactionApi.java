@@ -3,6 +3,7 @@ package com.samoilov.project.antifraud.controller.interfaces;
 import com.samoilov.project.antifraud.dto.FeedbackDto;
 import com.samoilov.project.antifraud.dto.ResultDto;
 import com.samoilov.project.antifraud.dto.TransactionDto;
+import com.samoilov.project.antifraud.validation.annotation.ValidCardNumber;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -81,7 +82,7 @@ public interface TransactionApi {
             @ApiResponse(responseCode = "404", description = "Transactions not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @GetMapping("/history/{number}")
-    ResponseEntity<List<TransactionDto>> getHistoryByCardNumber(@PathVariable String number);
+    @GetMapping("/history/{cardNumber}")
+    ResponseEntity<List<TransactionDto>> getHistoryByCardNumber(@ValidCardNumber @PathVariable String cardNumber);
 
 }

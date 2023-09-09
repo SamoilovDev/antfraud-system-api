@@ -1,6 +1,5 @@
 package com.samoilov.project.antifraud.controller;
 
-import com.samoilov.project.antifraud.components.AntifraudInfoChecker;
 import com.samoilov.project.antifraud.controller.interfaces.TransactionApi;
 import com.samoilov.project.antifraud.dto.FeedbackDto;
 import com.samoilov.project.antifraud.dto.ResultDto;
@@ -18,12 +17,8 @@ public class TransactionController implements TransactionApi {
 
     private final TransactionService transactionService;
 
-    private final AntifraudInfoChecker antifraudInfoChecker;
-
     @Override
     public ResponseEntity<ResultDto> prepareTransaction(TransactionDto transactionDto) {
-        antifraudInfoChecker.checkIpAddress(transactionDto.getIp());
-        antifraudInfoChecker.checkCardNumber(transactionDto.getNumber());
         return ResponseEntity.ok(transactionService.prepareTransaction(transactionDto));
     }
 
@@ -39,7 +34,6 @@ public class TransactionController implements TransactionApi {
 
     @Override
     public ResponseEntity<List<TransactionDto>> getHistoryByCardNumber(String number) {
-        antifraudInfoChecker.checkCardNumber(number);
         return ResponseEntity.ok(transactionService.getHistoryByCardNumber(number));
     }
 

@@ -82,7 +82,8 @@ public class AntifraudService {
                 .findByCardNumber(cardNumber)
                 .orElseThrow(
                         () -> new ResponseStatusException(
-                                HttpStatus.NOT_FOUND, "Card with number %s not found".formatted(cardNumber)
+                                HttpStatus.NOT_FOUND,
+                                "Card with number %s not found".formatted(cardNumber)
                         )
                 );
 

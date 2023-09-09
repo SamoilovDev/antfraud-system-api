@@ -86,14 +86,14 @@ public class TransactionService {
 
         List<String> distinctIpInLastHour = transactionRepository
                 .getAllDistinctIpDuringPeriod(
-                        transactionDto.getNumber(), dateTime.minusHours(1), dateTime
+                        transactionDto.getCardNumber(), dateTime.minusHours(1), dateTime
                 )
                 .stream()
-                .filter(ipAddress -> !ipAddress.equals(transactionDto.getIp()))
+                .filter(ipAddress -> !ipAddress.equals(transactionDto.getIpAddress()))
                 .toList();
         List<StateCode> distinctStateCodesInLastHour = transactionRepository
                 .getAllDistinctStateCodeDuringPeriod(
-                        transactionDto.getNumber(), dateTime.minusHours(1), dateTime
+                        transactionDto.getCardNumber(), dateTime.minusHours(1), dateTime
                 )
                 .stream()
                 .filter(stateCode -> !stateCode.equals(transactionDto.getRegion()))
@@ -141,12 +141,12 @@ public class TransactionService {
             reasons.add("region-correlation");
         }
 
-        if (blockedIpAddressRepository.findByIp(transactionDto.getIp()).isPresent()) {
+        if (blockedIpAddressRepository.findByIp(transactionDto.getIpAddress()).isPresent()) {
             paymentState = PaymentState.PROHIBITED;
             reasons.add("ip");
         }
 
-        if (blockedCardNumberRepository.findByCardNumber(transactionDto.getNumber()).isPresent()) {
+        if (blockedCardNumberRepository.findByCardNumber(transactionDto.getCardNumber()).isPresent()) {
             paymentState = PaymentState.PROHIBITED;
             reasons.add("card-number");
         }

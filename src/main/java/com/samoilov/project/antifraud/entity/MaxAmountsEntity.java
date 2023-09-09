@@ -26,10 +26,10 @@ public class MaxAmountsEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "max_allowed_transaction_amount")
+    @Column(name = "max_allowed_transaction_amount", columnDefinition = "BIGINT DEFAULT 100000")
     private Long maxAllowedTransactionAmount;
 
-    @Column(name = "max_manual_transaction_amount")
+    @Column(name = "max_manual_transaction_amount", columnDefinition = "BIGINT DEFAULT 100000")
     private Long maxManualTransactionAmount;
 
 }

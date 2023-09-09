@@ -2,6 +2,8 @@ package com.samoilov.project.antifraud.controller.interfaces;
 
 import com.samoilov.project.antifraud.dto.CardNumberDto;
 import com.samoilov.project.antifraud.dto.IpAddressDto;
+import com.samoilov.project.antifraud.validation.annotation.ValidCardNumber;
+import com.samoilov.project.antifraud.validation.annotation.ValidIpAddress;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -46,7 +48,7 @@ public interface AntifraudApi {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @DeleteMapping("/suspicious-ip/{ip}")
-    ResponseEntity<Map<String, String>> deleteSuspiciousIp(@PathVariable String ip);
+    ResponseEntity<Map<String, String>> deleteSuspiciousIp(@ValidIpAddress @PathVariable String ip);
 
     @ApiResponses(value = {
             @ApiResponse(
@@ -85,7 +87,7 @@ public interface AntifraudApi {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @DeleteMapping("/stolencard/{cardNumber}")
-    ResponseEntity<Map<String, String>> deleteStolenCard(@PathVariable String cardNumber);
+    ResponseEntity<Map<String, String>> deleteStolenCard(@ValidCardNumber @PathVariable String cardNumber);
 
     @ApiResponses(value = {
             @ApiResponse(

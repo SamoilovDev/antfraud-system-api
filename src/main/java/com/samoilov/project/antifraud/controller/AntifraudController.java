@@ -1,6 +1,5 @@
 package com.samoilov.project.antifraud.controller;
 
-import com.samoilov.project.antifraud.components.AntifraudInfoChecker;
 import com.samoilov.project.antifraud.controller.interfaces.AntifraudApi;
 import com.samoilov.project.antifraud.dto.CardNumberDto;
 import com.samoilov.project.antifraud.dto.IpAddressDto;
@@ -18,17 +17,13 @@ public class AntifraudController implements AntifraudApi {
 
     private final AntifraudService antifraudService;
 
-    private final AntifraudInfoChecker antifraudInfoChecker;
-
     @Override
     public ResponseEntity<IpAddressDto> saveSuspiciousIp(IpAddressDto ipAddressDto) {
-        antifraudInfoChecker.checkIpAddress(ipAddressDto.getIp());
         return ResponseEntity.ok(antifraudService.saveSuspiciousIp(ipAddressDto));
     }
 
     @Override
     public ResponseEntity<Map<String, String>> deleteSuspiciousIp(String ip) {
-        antifraudInfoChecker.checkIpAddress(ip);
         return ResponseEntity.ok(antifraudService.deleteSuspiciousIp(ip));
     }
 
@@ -39,13 +34,11 @@ public class AntifraudController implements AntifraudApi {
 
     @Override
     public ResponseEntity<CardNumberDto> saveStolenCard(CardNumberDto cardNumberDto) {
-        antifraudInfoChecker.checkCardNumber(cardNumberDto.getCardNumber());
         return ResponseEntity.ok(antifraudService.saveCardNumber(cardNumberDto));
     }
 
     @Override
     public ResponseEntity<Map<String, String>> deleteStolenCard(String cardNumber) {
-        antifraudInfoChecker.checkCardNumber(cardNumber);
         return ResponseEntity.ok(antifraudService.deleteCardNumber(cardNumber));
     }
 
