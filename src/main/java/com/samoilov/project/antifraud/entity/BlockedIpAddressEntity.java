@@ -18,16 +18,15 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@Table(name = "card_number")
-public class CardNumberEntity {
+@Table(name = "ip_address")
+public class BlockedIpAddressEntity {
 
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "card_number", nullable = false, unique = true)
-    private String cardNumber;
+    @Column(name = "ip", nullable = false, unique = true)
+    private String ip;
 
 }
-

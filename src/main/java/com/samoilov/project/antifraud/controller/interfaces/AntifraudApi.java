@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 @Tag(name = "Antifraud api")
-@RequestMapping("/api/antifraud")
+@PreAuthorize("hasRole('SUPPORT')")
+@RequestMapping("/api/v1/antifraud")
 public interface AntifraudApi {
 
     @ApiResponses(value = {

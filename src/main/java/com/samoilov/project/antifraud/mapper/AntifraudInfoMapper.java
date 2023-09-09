@@ -3,8 +3,8 @@ package com.samoilov.project.antifraud.mapper;
 import com.samoilov.project.antifraud.dto.CardNumberDto;
 import com.samoilov.project.antifraud.dto.IpAddressDto;
 import com.samoilov.project.antifraud.dto.TransactionDto;
-import com.samoilov.project.antifraud.entity.CardNumberEntity;
-import com.samoilov.project.antifraud.entity.IpAddressEntity;
+import com.samoilov.project.antifraud.entity.BlockedCardNumberEntity;
+import com.samoilov.project.antifraud.entity.BlockedIpAddressEntity;
 import com.samoilov.project.antifraud.entity.TransactionEntity;
 import com.samoilov.project.antifraud.enums.PaymentState;
 import org.springframework.stereotype.Component;
@@ -18,39 +18,34 @@ import static org.apache.logging.log4j.util.Strings.EMPTY;
 @Component
 public class AntifraudInfoMapper {
 
-    public IpAddressDto mapIpEntityToDto(IpAddressEntity ipAddressEntity) {
-        return IpAddressDto
-                .builder()
-                .id(ipAddressEntity.getId())
-                .ip(ipAddressEntity.getIp())
+    public IpAddressDto mapIpEntityToDto(BlockedIpAddressEntity blockedIpAddressEntity) {
+        return IpAddressDto.builder()
+                .id(blockedIpAddressEntity.getId())
+                .ip(blockedIpAddressEntity.getIp())
                 .build();
     }
 
-    public IpAddressEntity mapIpDtoToEntity(IpAddressDto ipAddressDto) {
-        return IpAddressEntity
-                .builder()
+    public BlockedIpAddressEntity mapIpDtoToEntity(IpAddressDto ipAddressDto) {
+        return BlockedIpAddressEntity.builder()
                 .ip(ipAddressDto.getIp())
                 .build();
     }
 
-    public CardNumberDto mapCardEntityToDto(CardNumberEntity cardNumberEntity) {
-        return CardNumberDto
-                .builder()
-                .id(cardNumberEntity.getId())
-                .cardNumber(cardNumberEntity.getCardNumber())
+    public CardNumberDto mapCardEntityToDto(BlockedCardNumberEntity blockedCardNumberEntity) {
+        return CardNumberDto.builder()
+                .id(blockedCardNumberEntity.getId())
+                .cardNumber(blockedCardNumberEntity.getCardNumber())
                 .build();
     }
 
-    public CardNumberEntity mapCardDtoToEntity(CardNumberDto cardNumberDto) {
-        return CardNumberEntity
-                .builder()
+    public BlockedCardNumberEntity mapCardDtoToEntity(CardNumberDto cardNumberDto) {
+        return BlockedCardNumberEntity.builder()
                 .cardNumber(cardNumberDto.getCardNumber())
                 .build();
     }
 
     public TransactionEntity mapTransactionDtoToEntity(TransactionDto transactionDto) {
-        return TransactionEntity
-                .builder()
+        return TransactionEntity.builder()
                 .amount(transactionDto.getAmount())
                 .cardNumber(transactionDto.getCardNumber())
                 .ip(transactionDto.getIpAddress())
@@ -61,8 +56,7 @@ public class AntifraudInfoMapper {
     }
 
     public TransactionDto mapTransactionEntityToDto(TransactionEntity transactionEntity) {
-        return TransactionDto
-                .builder()
+        return TransactionDto.builder()
                 .transactionId(transactionEntity.getId())
                 .amount(transactionEntity.getAmount())
                 .cardNumber(transactionEntity.getCardNumber())

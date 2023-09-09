@@ -13,8 +13,7 @@ public class UserCredentialsMapper {
     private final PasswordEncoder passwordEncoder;
 
     public UserDto mapToDto(UserEntity userEntity) {
-        return UserDto
-                .builder()
+        return UserDto.builder()
                 .id(userEntity.getId())
                 .name(userEntity.getName())
                 .username(userEntity.getUsername())
@@ -24,8 +23,7 @@ public class UserCredentialsMapper {
     }
 
     public UserEntity mapToEntity(UserDto userDto) {
-        return UserEntity
-                .builder()
+        return UserEntity.builder()
                 .name(userDto.getName())
                 .username(userDto.getUsername())
                 .encodedPassword(passwordEncoder.encode(userDto.getPassword()))

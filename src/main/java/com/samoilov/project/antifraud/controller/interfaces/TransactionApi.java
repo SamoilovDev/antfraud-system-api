@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 
 @Tag(name = "Transaction api")
-@RequestMapping("/api/antifraud")
+@RequestMapping("/api/v1/transactions")
 public interface TransactionApi {
 
     @Operation(description = "Prepare transaction")
@@ -38,7 +39,8 @@ public interface TransactionApi {
             @ApiResponse(responseCode = "404", description = "Max amounts not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @PostMapping("/transaction")
+    @PreAuthorize("hasRole('MERCHANT')")
+    @PostMapping
     ResponseEntity<ResultDto> prepareTransaction(@Valid @RequestBody TransactionDto transactionDto);
 
     @Operation(description = "Add feedback")
@@ -52,7 +54,8 @@ public interface TransactionApi {
             @ApiResponse(responseCode = "422", description = "Validity and Feedback payment states can not be equal"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @PutMapping("/transaction")
+    @PreAuthorize("hasRole('SUPPORT')")
+    @PutMapping
     ResponseEntity<TransactionDto> addFeedback(@Valid @RequestBody FeedbackDto feedbackDto);
 
     @Operation(description = "Get full history")
@@ -66,6 +69,7 @@ public interface TransactionApi {
             ),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
+    @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/history")
     ResponseEntity<List<TransactionDto>> getFullHistory();
 
@@ -82,6 +86,7 @@ public interface TransactionApi {
             @ApiResponse(responseCode = "404", description = "Transactions not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
+    @PreAuthorize("hasRole('SUPPORT')")
     @GetMapping("/history/{cardNumber}")
     ResponseEntity<List<TransactionDto>> getHistoryByCardNumber(@ValidCardNumber @PathVariable String cardNumber);
 

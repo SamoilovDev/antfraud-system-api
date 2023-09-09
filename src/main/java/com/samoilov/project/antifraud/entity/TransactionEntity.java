@@ -56,7 +56,7 @@ public class TransactionEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public TransactionEntity getThisWithPaymentState(PaymentState paymentState) {
+    public TransactionEntity addPaymentState(PaymentState paymentState) {
         this.paymentState = paymentState;
         return this;
     }

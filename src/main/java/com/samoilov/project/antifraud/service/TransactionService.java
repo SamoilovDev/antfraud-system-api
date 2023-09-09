@@ -4,10 +4,10 @@ import com.samoilov.project.antifraud.dto.CheckResponseDto;
 import com.samoilov.project.antifraud.dto.FeedbackDto;
 import com.samoilov.project.antifraud.dto.ResultDto;
 import com.samoilov.project.antifraud.dto.TransactionDto;
+import com.samoilov.project.antifraud.dto.TransactionPreparingInfoDto;
 import com.samoilov.project.antifraud.entity.MaxAmountsEntity;
 import com.samoilov.project.antifraud.entity.TransactionEntity;
 import com.samoilov.project.antifraud.enums.PaymentState;
-import com.samoilov.project.antifraud.enums.StateCode;
 import com.samoilov.project.antifraud.mapper.AntifraudInfoMapper;
 import com.samoilov.project.antifraud.repository.BlockedCardNumberRepository;
 import com.samoilov.project.antifraud.repository.BlockedIpAddressRepository;
@@ -26,6 +26,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static com.samoilov.project.antifraud.constant.TransactionConstant.FEEDBACK_ALREADY_EXISTS;
+import static com.samoilov.project.antifraud.constant.TransactionConstant.MAX_AMOUNTS_NOT_FOUND;
+import static com.samoilov.project.antifraud.constant.TransactionConstant.TRANSACTIONS_NOT_FOUND;
+import static com.samoilov.project.antifraud.constant.TransactionConstant.TRANSACTION_NOT_FOUND;
+import static com.samoilov.project.antifraud.constant.TransactionConstant.UNKNOWN_PAYMENT_STATE;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -42,8 +48,7 @@ public class TransactionService {
     private final AntifraudInfoMapper antifraudInfoMapper;
 
     public List<TransactionDto> getFullHistory() {
-        return transactionRepository
-                .findAll()
+        return transactionRepository.findAll()
                 .stream()
                 .map(antifraudInfoMapper::mapTransactionEntityToDto)
                 .toList();
@@ -53,7 +58,7 @@ public class TransactionService {
         List<TransactionEntity> transactionsByCard = transactionRepository.getAllByCardNumber(cardNumber);
 
         if (transactionsByCard.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transactions with this card number not found!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, TRANSACTIONS_NOT_FOUND);
         }
 
         return transactionsByCard
@@ -66,10 +71,10 @@ public class TransactionService {
     public TransactionDto addFeedback(FeedbackDto feedbackDto) {
         TransactionEntity transactionEntity = transactionRepository
                 .findById(feedbackDto.getTransactionId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, TRANSACTION_NOT_FOUND));
 
         if (Objects.nonNull(transactionEntity.getFeedback())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Feedback already exists");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, FEEDBACK_ALREADY_EXISTS);
         }
 
         transactionEntity.setFeedback(feedbackDto.getFeedback());
@@ -81,32 +86,30 @@ public class TransactionService {
         return antifraudInfoMapper.mapTransactionEntityToDto(transactionRepository.save(transactionEntity));
     }
 
+    @PostConstruct
+    @Transactional
+    public void createMaxAmounts() {
+        if (maxAmountsRepository.findById(1L).isEmpty()) {
+            maxAmountsRepository.save(new MaxAmountsEntity());
+        }
+    }
+
+    @Transactional
     public ResultDto prepareTransaction(TransactionDto transactionDto) {
         LocalDateTime dateTime = LocalDateTime.parse(transactionDto.getDate());
-
-        List<String> distinctIpInLastHour = transactionRepository
-                .getAllDistinctIpDuringPeriod(
-                        transactionDto.getCardNumber(), dateTime.minusHours(1), dateTime
-                )
+        List<TransactionPreparingInfoDto> distinctIpAndStateCodeInLastHour = transactionRepository
+                .getAllDistinctIpAndStateCodeDuringPeriod(transactionDto.getCardNumber(), dateTime)
                 .stream()
-                .filter(ipAddress -> !ipAddress.equals(transactionDto.getIpAddress()))
+                .filter(transactionPreparingInfoDto ->
+                        !transactionPreparingInfoDto.getIp().equals(transactionDto.getIpAddress())
+                        && !transactionPreparingInfoDto.getStateCode().equals(transactionDto.getRegion()))
                 .toList();
-        List<StateCode> distinctStateCodesInLastHour = transactionRepository
-                .getAllDistinctStateCodeDuringPeriod(
-                        transactionDto.getCardNumber(), dateTime.minusHours(1), dateTime
-                )
-                .stream()
-                .filter(stateCode -> !stateCode.equals(transactionDto.getRegion()))
-                .toList();
-
-        CheckResponseDto checkingResponse = this.checkTransaction(
-                distinctIpInLastHour, distinctStateCodesInLastHour, transactionDto
-        );
+        CheckResponseDto checkingResponse = this.checkTransaction(distinctIpAndStateCodeInLastHour, transactionDto);
 
         transactionRepository.save(
                 antifraudInfoMapper
                         .mapTransactionDtoToEntity(transactionDto)
-                        .getThisWithPaymentState(checkingResponse.getPaymentState())
+                        .addPaymentState(checkingResponse.getPaymentState())
         );
 
         return ResultDto
@@ -117,30 +120,49 @@ public class TransactionService {
     }
 
     private CheckResponseDto checkTransaction(
-            List<String> distinctIpInLastHour,
-            List<StateCode> distinctStateCodesInLastHour,
+            List<TransactionPreparingInfoDto> distinctIpAndStateCodeInLastHour,
             TransactionDto transactionDto) {
-        Long amount = transactionDto.getAmount();
         List<String> reasons = new ArrayList<>();
         PaymentState paymentState = PaymentState.ALLOWED;
         MaxAmountsEntity maxAmountsEntity = maxAmountsRepository
                 .findById(1L)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Max amounts not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, MAX_AMOUNTS_NOT_FOUND));
 
-        if (distinctIpInLastHour.size() >= 2) {
-            paymentState = distinctIpInLastHour.size() == 2 ? PaymentState.MANUAL_PROCESSING : PaymentState.PROHIBITED;
-            reasons.add("ip-correlation");
-        }
+        paymentState = this.changePaymentStatePreparingByDistinctTransactionsLength(
+                distinctIpAndStateCodeInLastHour, paymentState, reasons
+        );
+        paymentState = this.changePaymentStateByAlreadyBannedIpAndCardNumber(transactionDto, paymentState, reasons);
+        paymentState = this.changePaymentStateByExceedingLimit(
+                paymentState, transactionDto.getAmount(), maxAmountsEntity, reasons
+        );
 
+        return CheckResponseDto.builder()
+                .reasons(reasons)
+                .paymentState(paymentState)
+                .build();
+    }
+
+    private PaymentState changePaymentStateByExceedingLimit(
+            PaymentState paymentState,
+            long amount,
+            MaxAmountsEntity maxAmountsEntity,
+            List<String> reasons) {
         boolean paymentAlreadyProhibited = paymentState.equals(PaymentState.PROHIBITED);
-        if (distinctStateCodesInLastHour.size() >= 2) {
-            paymentState = distinctStateCodesInLastHour.size() == 2 && !paymentAlreadyProhibited
+        if (amount > maxAmountsEntity.getMaxAllowedTransactionAmount() && !paymentAlreadyProhibited) {
+            paymentState = amount <= maxAmountsEntity.getMaxManualTransactionAmount()
                     ? PaymentState.MANUAL_PROCESSING
                     : PaymentState.PROHIBITED;
-
-            reasons.add("region-correlation");
+            reasons.add("amount");
+        } else if (amount > maxAmountsEntity.getMaxManualTransactionAmount() && paymentAlreadyProhibited) {
+            reasons.add("amount");
         }
+        return paymentState;
+    }
 
+    private PaymentState changePaymentStateByAlreadyBannedIpAndCardNumber(
+            TransactionDto transactionDto,
+            PaymentState paymentState,
+            List<String> reasons) {
         if (blockedIpAddressRepository.findByIp(transactionDto.getIpAddress()).isPresent()) {
             paymentState = PaymentState.PROHIBITED;
             reasons.add("ip");
@@ -151,22 +173,30 @@ public class TransactionService {
             reasons.add("card-number");
         }
 
-        paymentAlreadyProhibited = paymentState.equals(PaymentState.PROHIBITED);
-        if (amount > maxAmountsEntity.getMaxAllowedTransactionAmount() && !paymentAlreadyProhibited) {
-            paymentState = amount <= maxAmountsEntity.getMaxManualTransactionAmount()
+        return paymentState;
+    }
+
+    private PaymentState changePaymentStatePreparingByDistinctTransactionsLength(
+            List<TransactionPreparingInfoDto> distinctIpAndStateCodeInLastHour,
+            PaymentState paymentState,
+            List<String> reasons) {
+        if (distinctIpAndStateCodeInLastHour.size() >= 2) {
+            paymentState = distinctIpAndStateCodeInLastHour.size() == 2
                     ? PaymentState.MANUAL_PROCESSING
                     : PaymentState.PROHIBITED;
-            reasons.add("amount");
-        } else if (amount > maxAmountsEntity.getMaxManualTransactionAmount() && paymentAlreadyProhibited) {
-            reasons.add("amount");
+            reasons.add("ip-correlation");
         }
 
+        boolean paymentAlreadyProhibited = paymentState.equals(PaymentState.PROHIBITED);
+        if (distinctIpAndStateCodeInLastHour.size() >= 2) {
+            paymentState = distinctIpAndStateCodeInLastHour.size() == 2 && !paymentAlreadyProhibited
+                    ? PaymentState.MANUAL_PROCESSING
+                    : PaymentState.PROHIBITED;
 
-        return CheckResponseDto
-                .builder()
-                .reasons(reasons)
-                .paymentState(paymentState)
-                .build();
+            reasons.add("region-correlation");
+        }
+
+        return paymentState;
     }
 
     private String joinReasons(List<String> reasons) {
@@ -180,7 +210,9 @@ public class TransactionService {
     private void setMaxAmounts(PaymentState validity, PaymentState feedback, Long valueFromTransaction) {
         if (validity.equals(feedback)) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
-        } else switch (validity) {
+        }
+
+        switch (validity) {
             case ALLOWED -> {
                 if (feedback.equals(PaymentState.PROHIBITED)) {
                     this.changeManualAmount(Boolean.FALSE, valueFromTransaction);
@@ -200,14 +232,14 @@ public class TransactionService {
                 }
                 this.changeManualAmount(Boolean.TRUE, valueFromTransaction);
             }
-            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown payment state");
+            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, UNKNOWN_PAYMENT_STATE);
         }
     }
 
     private void changeAllowedAmount(boolean isToUp, Long valueFromTransaction) {
         Long maxAllowedTransactionAmount = maxAmountsRepository
                 .findById(1L)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Max amounts not found"))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, MAX_AMOUNTS_NOT_FOUND))
                 .getMaxAllowedTransactionAmount();
 
         double partOfAmount = maxAllowedTransactionAmount * 0.8;
@@ -223,7 +255,7 @@ public class TransactionService {
     private void changeManualAmount(boolean isToUp, Long valueFromTransaction) {
         Long maxManualTransactionAmount = maxAmountsRepository
                 .findById(1L)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Max amounts not found"))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, MAX_AMOUNTS_NOT_FOUND))
                 .getMaxManualTransactionAmount();
 
         double partOfAmount = maxManualTransactionAmount * 0.8;
@@ -234,20 +266,6 @@ public class TransactionService {
         );
 
         log.warn("Max manual transaction amount was changed to {}", maxManualTransactionAmount);
-    }
-
-    @PostConstruct
-    public void createMaxAmounts() {
-        if (maxAmountsRepository.findById(1L).isEmpty()) {
-            maxAmountsRepository.save(
-                    MaxAmountsEntity
-                            .builder()
-                            .id(1L)
-                            .maxManualTransactionAmount(1500L)
-                            .maxAllowedTransactionAmount(200L)
-                            .build()
-            );
-        }
     }
 
 }

@@ -7,6 +7,7 @@ import com.samoilov.project.antifraud.enums.Authority;
 import com.samoilov.project.antifraud.enums.LockState;
 import com.samoilov.project.antifraud.mapper.UserCredentialsMapper;
 import com.samoilov.project.antifraud.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,19 +18,19 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
 
+import static com.samoilov.project.antifraud.constant.AuthConstant.ACCESS_WAS_CHANGED_RESPONSE;
+import static com.samoilov.project.antifraud.constant.AuthConstant.CHANGING_ADMIN_STATE_EXCEPTION_REASON;
+import static com.samoilov.project.antifraud.constant.AuthConstant.INVALID_ROLE;
+import static com.samoilov.project.antifraud.constant.AuthConstant.USER_ALREADY_HAS_THIS_ROLE;
+import static com.samoilov.project.antifraud.constant.AuthConstant.USER_WAS_DELETED_RESPONSE;
+
 @Service
+@RequiredArgsConstructor
 public class AuthService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
     private final UserCredentialsMapper userCredentialsMapper;
-
-    public static final String CHANGING_ADMIN_STATE_EXCEPTION_REASON = "Impossible to change administrator's lock state";
-
-    public AuthService(UserRepository userRepository, UserCredentialsMapper userCredentialsMapper) {
-        this.userRepository = userRepository;
-        this.userCredentialsMapper = userCredentialsMapper;
-    }
 
     public List<UserDto> getAllUsers() {
         return userRepository
@@ -44,8 +45,16 @@ public class AuthService implements UserDetailsService {
             throw new ResponseStatusException(HttpStatus.CONFLICT);
         }
 
-        userDto.setRole(userRepository.findById(1L).isEmpty() ? Authority.ADMINISTRATOR : Authority.MERCHANT);
-        userDto.setLockState(userDto.getRole().equals(Authority.ADMINISTRATOR) ? LockState.UNLOCK : LockState.LOCK);
+        userDto.setRole(
+                userRepository.findById(1L).isEmpty()
+                        ? Authority.ADMINISTRATOR
+                        : Authority.MERCHANT
+        );
+        userDto.setLockState(
+                userDto.getRole().equals(Authority.ADMINISTRATOR)
+                        ? LockState.UNLOCK
+                        : LockState.LOCK
+        );
 
         return userCredentialsMapper.mapToDto(
                 userRepository.save(userCredentialsMapper.mapToEntity(userDto))
@@ -56,10 +65,10 @@ public class AuthService implements UserDetailsService {
         UserEntity userEntity = this.getUserEntityByUsername(changeInfoDto.getUsername());
         Authority newRole = Authority
                 .parse(changeInfoDto.getRole())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, INVALID_ROLE));
 
         if (newRole.equals(userEntity.getRole())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User already has this role");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, USER_ALREADY_HAS_THIS_ROLE);
         }
 
         userEntity.setRole(newRole);
@@ -74,18 +83,19 @@ public class AuthService implements UserDetailsService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, CHANGING_ADMIN_STATE_EXCEPTION_REASON);
         }
 
-        userEntity.setLockState(LockState.valueOf(changeInfoDto.getRole().trim().toUpperCase()));
+        userEntity.setLockState(
+                LockState.valueOf(
+                        changeInfoDto.getRole().trim().toUpperCase()
+                )
+        );
         userRepository.save(userEntity);
 
-        return Map.of(
-                "status",
-                "User %s %s!".formatted(userEntity.getUsername(), userEntity.getLockState().getLockState())
-        );
+        return ACCESS_WAS_CHANGED_RESPONSE;
     }
 
     public Map<String, String> deleteUser(String username) {
         userRepository.delete(this.getUserEntityByUsername(username));
-        return Map.of("username", username, "status", "Deleted successfully!");
+        return USER_WAS_DELETED_RESPONSE;
     }
 
 
