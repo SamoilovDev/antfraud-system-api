@@ -1,1 +1,1 @@
-rootProject.name = "AntifraudSystem"
+rootProject.name = "antifraud-system"

@@ -1,0 +1,20 @@
+version: '3'
+services:
+  app:
+    image: antifraud-system
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/antifraud
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=qq11qq22qq33
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=qq11qq22qq33
+      - MYSQL_DATABASE=antifraud
+    ports:
+      - "3306:3306"
